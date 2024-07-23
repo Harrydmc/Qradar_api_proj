@@ -4,8 +4,8 @@ import datetime
 
 # QRadar API details
 api_url = "https://192.168.0.111/"
-api_token = "1fcf78e9-4521-4e37-9254-7b34dd3dd936"
-headers = {"Content-Type": "application/json", "SEC": api_token}
+api_token = "1fcf78e9-4521-4e37-9254-7b34dd3dd936"         #Dont leave your Api_token like this 
+headers = {"Content-Type": "application/json", "SEC": api_token}    #(Im not removing bcoz this is a test Local server with logs only access and im too lazy to copy paste everytime XD)
 
 # Function to get all log sources
 def get_log_sources():
@@ -50,7 +50,7 @@ def format_timestamp(timestamp):
 def search_log_sources(search_name):
     log_sources = get_log_sources()
     if log_sources:
-        matching_log_sources = [ls for ls in log_sources if ls.get('enabled') and search_name.lower() in ls.get("name", "").lower()]
+        matching_log_sources = [ls for ls in log_sources if search_name.lower() in ls.get("name", "").lower()]
         return matching_log_sources
     return None
 
@@ -58,7 +58,7 @@ def search_log_sources(search_name):
 def count_devices_for_collector(target_collector_id, log_sources):
     count = 0
     for log_source in log_sources:
-        if log_source.get('enabled') and log_source.get('target_event_collector_id') == target_collector_id:
+        if log_source.get('target_event_collector_id') == target_collector_id:
             count += 1
     return count
 
@@ -70,7 +70,7 @@ def get_log_source_type_name(type_id, log_source_types):
     return 'Unknown'
 
 # Static search name
-search_name = "TEST_1"
+search_name = "SIM Audit-2 :: qradarce"
 
 # Main script
 if __name__ == "__main__":
@@ -95,6 +95,7 @@ if __name__ == "__main__":
 
                 print(f"\nLog Source Name: {log_source.get('name', 'N/A')}")
                 print(f"Log Source Type: {log_source_type_name}")
+                print(f"Enabled: {'Yes' if log_source.get('enabled') else 'No'}")
                 print(f"Last Event Time: {format_timestamp(log_source.get('last_event_time'))}")
                 print(f"Target Event Collector: {collector_name}")
                 print(f"Number of Devices Reporting to Collector: {devices_count}")

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QRadar Log Source Search</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 10px; border: 1px solid #ddd; }
+        th { background-color: #f4f4f4; }
+        form { margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <h1>QRadar Log Source Search</h1>
+    <form method="post">
+        <label for="search_name">Log Source Name:</label>
+        <input type="text" id="search_name" name="search_name" required>
+        <button type="submit">Search</button>
+    </form>
+
+    {% if results %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Log Source Name</th>
+                    <th>Log Source Type</th>
+                    <th>Last Event Time</th>
+                    <th>Target Event Collector</th>
+                    <th>Number of Devices Reporting to Collector</th>
+                    <th>Device Status</th>
+                    <th>Source Console</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for result in results %}
+                    <tr>
+                        <td>{{ result['Log Source Name'] }}</td>
+                        <td>{{ result['Log Source Type'] }}</td>
+                        <td>{{ result['Last Event Time'] }}</td>
+                        <td>{{ result['Target Event Collector'] }}</td>
+                        <td>{{ result['Number of Devices Reporting to Collector'] }}</td>
+                        <td>{{ result['Device Status'] }}</td>
+                        <td>{{ result['Source Console'] }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+</body>
+</html>

@@ -1,11 +1,13 @@
 import requests
 import json
 import datetime
+import pytz
+from dateutil import tz
 
 # QRadar API details
 api_url = "https://192.168.0.111/"
-api_token = "1fcf78e9-4521-4e37-9254-7b34dd3dd936"         #Dont leave your Api_token like this 
-headers = {"Content-Type": "application/json", "SEC": api_token}    #(Im not removing bcoz this is a test Local server with logs only access and im too lazy to copy paste everytime XD)
+api_token = "1fcf78e9-4521-4e37-9254-7b34dd3dd936"
+headers = {"Content-Type": "application/json", "SEC": api_token}
 
 # Function to get all log sources
 def get_log_sources():
@@ -40,10 +42,25 @@ def get_log_source_types():
         print(f"Error fetching log source types: {e}")
         return None
 
-# Function to format timestamp
-def format_timestamp(timestamp):
+# Function to format timestamp based on log source time zone
+def format_timestamp(timestamp, time_zone='UTC'):
     if timestamp:
-        return datetime.datetime.fromtimestamp(timestamp / 1000).strftime('%Y-%m-%d %H:%M:%S')
+        # Convert timestamp to UTC
+        dt_utc = datetime.datetime.fromtimestamp(timestamp / 1000, tz=tz.tzutc())
+        
+        # Convert UTC to local time zone
+        try:
+            local_tz = pytz.timezone(time_zone)
+        except pytz.UnknownTimeZoneError:
+            local_tz = pytz.timezone('UTC')  # Default to UTC if unknown timezone
+        
+        dt_local = dt_utc.astimezone(local_tz)
+        
+        # Check if the time is in 12-hour format
+        if dt_local.strftime('%p') in ['AM', 'PM']:
+            return dt_local.strftime('%Y-%m-%d %I:%M:%S %p')
+        else:
+            return dt_local.strftime('%Y-%m-%d %H:%M:%S')
     return 'N/A'
 
 # Function to search log sources by name
@@ -58,7 +75,7 @@ def search_log_sources(search_name):
 def count_devices_for_collector(target_collector_id, log_sources):
     count = 0
     for log_source in log_sources:
-        if log_source.get('target_event_collector_id') == target_collector_id:
+        if log_source.get('enabled') and log_source.get('target_event_collector_id') == target_collector_id:
             count += 1
     return count
 
@@ -70,7 +87,7 @@ def get_log_source_type_name(type_id, log_source_types):
     return 'Unknown'
 
 # Static search name
-search_name = "SIM Audit-2 :: qradarce"
+search_name = "TEST_1"
 
 # Main script
 if __name__ == "__main__":
@@ -92,10 +109,14 @@ if __name__ == "__main__":
                 collector_name = next((ec.get('name') for ec in event_collectors if ec.get('id') == collector_id), 'Unknown') if event_collectors else 'Unknown'
                 log_source_type_name = get_log_source_type_name(log_source.get('type_id'), log_source_types) if log_source_types else 'Unknown'
                 devices_count = count_devices_for_collector(collector_id, log_sources)
+                status = "Enabled" if log_source.get('enabled') else "Disabled"
+                
+                # Placeholder: 'UTC' can be replaced by actual timezone data if available
+                log_source_time_zone = 'UTC' 
 
                 print(f"\nLog Source Name: {log_source.get('name', 'N/A')}")
                 print(f"Log Source Type: {log_source_type_name}")
-                print(f"Enabled: {'Yes' if log_source.get('enabled') else 'No'}")
-                print(f"Last Event Time: {format_timestamp(log_source.get('last_event_time'))}")
+                print(f"Last Event Time: {format_timestamp(log_source.get('last_event_time'), log_source_time_zone)}")
                 print(f"Target Event Collector: {collector_name}")
                 print(f"Number of Devices Reporting to Collector: {devices_count}")
+                print(f"Device Status: {status}")
